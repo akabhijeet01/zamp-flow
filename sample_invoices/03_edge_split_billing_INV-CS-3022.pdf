@@ -1,0 +1,217 @@
+%PDF-1.4
+%“Œ‹ž ReportLab Generated PDF document (opensource)
+1 0 obj
+<<
+/F1 2 0 R /F2 3 0 R /F3 4 0 R
+>>
+endobj
+2 0 obj
+<<
+/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+>>
+endobj
+3 0 obj
+<<
+/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font
+>>
+endobj
+4 0 obj
+<<
+/BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding /Name /F3 /Subtype /Type1 /Type /Font
+>>
+endobj
+5 0 obj
+<<
+/Contents 9 0 R /MediaBox [ 0 0 612 792 ] /Parent 8 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+6 0 obj
+<<
+/PageMode /UseNone /Pages 8 0 R /Type /Catalog
+>>
+endobj
+7 0 obj
+<<
+/Author (anonymous) /CreationDate (D:20261112151210+05'00') /Creator (anonymous) /Keywords () /ModDate (D:20261112151210+05'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+  /Subject (unspecified) /Title (untitled) /Trapped /False
+>>
+endobj
+8 0 obj
+<<
+/Count 1 /Kids [ 5 0 R ] /Type /Pages
+>>
+endobj
+9 0 obj
+<<
+/Length 4359
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+.058824 .090196 .164706 rg
+n 0 720 612 72 re f*
+1 1 1 rg
+BT /F2 20 Tf 24 TL ET
+BT 1 0 0 1 40 750 Tm (COMMERCIAL INVOICE) Tj T* ET
+BT /F1 10 Tf 12 TL ET
+.580392 .639216 .721569 rg
+BT 1 0 0 1 40 734 Tm (AUTOMATED ACCOUNTS PAYABLE RECONCILIATION DOCUMENT) Tj T* ET
+BT /F2 12 Tf 14.4 TL ET
+1 1 1 rg
+BT 1 0 0 1 443.972 750 Tm (INVOICE: INV-CS-3022) Tj T* ET
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 489.19 734 Tm (PO REF: PO-7020) Tj T* ET
+.058824 .090196 .164706 rg
+BT /F2 14 Tf 16.8 TL ET
+BT 1 0 0 1 40 680 Tm (CloudScale Infrastructure Inc.) Tj T* ET
+BT /F1 9 Tf 10.8 TL ET
+.278431 .333333 .411765 rg
+BT 1 0 0 1 40 665 Tm (500 Cloud Valley Blvd) Tj T* ET
+BT 1 0 0 1 40 652 Tm (Seattle, WA 98101 \267 Tax ID: US-94-1182390) Tj T* ET
+BT /F2 10 Tf 12 TL ET
+.058824 .090196 .164706 rg
+BT 1 0 0 1 340 680 Tm (BILLED TO:) Tj T* ET
+BT /F1 9 Tf 10.8 TL ET
+.278431 .333333 .411765 rg
+BT 1 0 0 1 340 665 Tm (Zamp Global Enterprises Inc.) Tj T* ET
+BT 1 0 0 1 340 652 Tm (Attn: Accounts Payable Department) Tj T* ET
+BT 1 0 0 1 340 639 Tm (500 Technology Square, San Francisco, CA 94107) Tj T* ET
+.886275 .909804 .941176 RG
+.972549 .980392 .988235 rg
+n
+44 580 m
+568 580 l
+570.2112 580 572 581.7888 572 584 c
+572 621 l
+572 623.2112 570.2112 625 568 625 c
+44 625 l
+41.7888 625 40 623.2112 40 621 c
+40 584 l
+40 581.7888 41.7888 580 44 580 c
+h
+B*
+BT /F2 8 Tf 9.6 TL ET
+.392157 .454902 .545098 rg
+BT 1 0 0 1 55 608 Tm (INVOICE DATE) Tj T* ET
+BT 1 0 0 1 175 608 Tm (PAYMENT DUE) Tj T* ET
+BT 1 0 0 1 295 608 Tm (PURCHASE ORDER) Tj T* ET
+BT 1 0 0 1 435 608 Tm (PAYMENT METHOD) Tj T* ET
+BT /F2 10 Tf 12 TL ET
+.058824 .090196 .164706 rg
+BT 1 0 0 1 55 592 Tm (2026-11-10) Tj T* ET
+BT 1 0 0 1 175 592 Tm (2026-12-10) Tj T* ET
+BT 1 0 0 1 295 592 Tm (PO-7020) Tj T* ET
+BT 1 0 0 1 435 592 Tm (ACH / Direct Wire) Tj T* ET
+.117647 .160784 .231373 rg
+n 40 535 532 24 re f*
+1 1 1 rg
+BT /F2 9 Tf 10.8 TL ET
+BT 1 0 0 1 50 542 Tm (ITEM) Tj T* ET
+BT 1 0 0 1 90 542 Tm (SKU) Tj T* ET
+BT 1 0 0 1 180 542 Tm (DESCRIPTION) Tj T* ET
+BT 1 0 0 1 381.496 542 Tm (QTY) Tj T* ET
+BT 1 0 0 1 418.997 542 Tm (UNIT PRICE) Tj T* ET
+BT 1 0 0 1 520.508 542 Tm (AMOUNT) Tj T* ET
+.058824 .090196 .164706 rg
+BT /F1 9 Tf 10.8 TL ET
+BT 1 0 0 1 50 515 Tm (1) Tj T* ET
+BT /F2 8 Tf 9.6 TL ET
+.278431 .333333 .411765 rg
+BT 1 0 0 1 90 515 Tm (CLOUD-RES-COMPUTE) Tj T* ET
+BT /F1 9 Tf 10.8 TL ET
+.058824 .090196 .164706 rg
+BT 1 0 0 1 180 515 Tm (High Performance Reserved GPU Clust) Tj T* ET
+BT 1 0 0 1 394.996 515 Tm (1) Tj T* ET
+BT 1 0 0 1 429.968 515 Tm ($6,000.00) Tj T* ET
+BT /F2 9 Tf 10.8 TL ET
+BT 1 0 0 1 519.968 515 Tm ($6,000.00) Tj T* ET
+.945098 .960784 .976471 RG
+n 40 509 m 572 509 l S
+.972549 .980392 .988235 rg
+.796078 .835294 .882353 RG
+n
+334 409 m
+568 409 l
+570.2112 409 572 410.7888 572 413 c
+572 475 l
+572 477.2112 570.2112 479 568 479 c
+334 479 l
+331.7888 479 330 477.2112 330 475 c
+330 413 l
+330 410.7888 331.7888 409 334 409 c
+h
+B*
+BT /F1 9 Tf 10.8 TL ET
+.392157 .454902 .545098 rg
+BT 1 0 0 1 345 462 Tm (Subtotal:) Tj T* ET
+BT 1 0 0 1 519.968 462 Tm ($6,000.00) Tj T* ET
+BT 1 0 0 1 345 446 Tm (Tax \(Sales / VAT\):) Tj T* ET
+BT 1 0 0 1 537.482 446 Tm ($0.00) Tj T* ET
+.796078 .835294 .882353 RG
+n 345 439 m 560 439 l S
+BT /F2 12 Tf 14.4 TL ET
+.058824 .090196 .164706 rg
+BT 1 0 0 1 345 420 Tm (TOTAL DUE:) Tj T* ET
+BT 1 0 0 1 506.624 420 Tm ($6,000.00) Tj T* ET
+.937255 .964706 1 rg
+.74902 .858824 .996078 RG
+n
+44 344 m
+306 344 l
+308.2112 344 310 345.7888 310 348 c
+310 400 l
+310 402.2112 308.2112 404 306 404 c
+44 404 l
+41.7888 404 40 402.2112 40 400 c
+40 348 l
+40 345.7888 41.7888 344 44 344 c
+h
+B*
+BT /F2 8 Tf 9.6 TL ET
+.113725 .305882 .847059 rg
+BT 1 0 0 1 50 388 Tm (REMITTANCE & ACH PAYMENT DETAILS) Tj T* ET
+BT /F1 8 Tf 9.6 TL ET
+.117647 .160784 .231373 rg
+BT 1 0 0 1 50 372 Tm (Bank Routing \(ABA\): 322271627) Tj T* ET
+BT 1 0 0 1 50 358 Tm (Account Number: XXXX3341) Tj T* ET
+BT /F3 8 Tf 9.6 TL ET
+.392157 .454902 .545098 rg
+BT 1 0 0 1 40 70 Tm (Notes: Progress billing against master agreement PO-7020 \($25,000.00 total\). Milestone 2 of 3.) Tj T* ET
+.886275 .909804 .941176 RG
+n 40 55 m 572 55 l S
+BT /F1 7 Tf 8.4 TL ET
+.580392 .639216 .721569 rg
+BT 1 0 0 1 40 40 Tm (Generated for Zamp AI Solutions Analyst Case Study \267 Enterprise AP Pipeline \267 INV-CS-3022) Tj T* ET
+BT 1 0 0 1 429.599 40 Tm (Confidential Financial Document \267 Page 1 of 1) Tj T* ET
+ 
+endstream
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000061 00000 n 
+0000000112 00000 n 
+0000000219 00000 n 
+0000000331 00000 n 
+0000000446 00000 n 
+0000000639 00000 n 
+0000000707 00000 n 
+0000000968 00000 n 
+0000001027 00000 n 
+trailer
+<<
+/ID 
+[<17c0675952e9d1aee3d9637937d1ff2e><17c0675952e9d1aee3d9637937d1ff2e>]
+% ReportLab generated PDF document -- digest (opensource)
+
+/Info 7 0 R
+/Root 6 0 R
+/Size 10
+>>
+startxref
+5437
+%%EOF

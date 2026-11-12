@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zamp Flow · Autonomous AP Invoice Processing & PO Matching</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .pulse-animation { animation: pulse-ring 2s infinite ease-in-out; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen antialiased flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center font-black text-white shadow-lg shadow-indigo-500/20">
+          Z
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight text-white">zamp<span class="text-indigo-400">flow</span></span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">PS-1 AP Engine</span>
+          </div>
+          <p class="text-xs text-slate-400">Autonomous AP Invoice Processing & PO Matching</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+        <button onclick="switchTab('pipeline')" id="tab-pipeline" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 transition flex items-center gap-2">
+          <i data-lucide="play" class="w-3.5 h-3.5"></i> Live Pipeline
+        </button>
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2">
+          <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> Past Runs & History
+        </button>
+        <button onclick="switchTab('erp')" id="tab-erp" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2">
+          <i data-lucide="database" class="w-3.5 h-3.5"></i> ERP & PO Registry
+        </button>
+      </nav>
+
+      <!-- System Status & Controls -->
+      <div class="flex items-center gap-3">
+        <div class="hidden lg:flex items-center gap-2 text-xs text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-800">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Policy: <b>3.0% Tolerance</b></span>
+        </div>
+        <button onclick="resetERPState()" class="text-xs font-medium text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5" title="Reset ERP balances and history for fresh demo rehearsal">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Demo
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: LIVE PROCESSING VIEW -->
+    <!-- ========================================== -->
+    <section id="view-pipeline" class="space-y-6">
+
+      <!-- Scenario Selector Banner -->
+      <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="file-check-2" class="w-4 h-4 text-indigo-400"></i>
+              Select a Test Scenario or Upload Invoice PDF
+            </h2>
+            <p class="text-xs text-slate-400">Run the standard Happy Path or test real-world edge cases (price variance, split billing, duplicate billing, or unapproved vendor).</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold px-3 py-2 rounded-xl border border-slate-700 transition flex items-center gap-2">
+              <i data-lucide="upload-cloud" class="w-4 h-4 text-indigo-400"></i>
+              <span>Upload Custom PDF</span>
+              <input type="file" id="custom-file-input" accept=".pdf" class="hidden" onchange="handleFileUpload(event)">
+            </label>
+          </div>
+        </div>
+
+        <!-- 5 Scenarios Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3" id="scenarios-grid">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+
+      <!-- Execution Pipeline Stepper -->
+      <div id="pipeline-stepper-box" class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 shadow-xl transition-all">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-5">
+          <div class="flex items-center gap-3">
+            <div id="pipeline-status-indicator" class="w-3 h-3 rounded-full bg-slate-600"></div>
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>Multi-Stage Autonomous Decision Pipeline</span>
+                <span id="pipeline-scenario-badge" class="hidden text-[10px] px-2 py-0.5 rounded-full font-bold"></span>
+              </h3>
+              <p id="pipeline-status-text" class="text-xs text-slate-400">Ready. Select a scenario above or upload a PDF to execute.</p>
+            </div>
+          </div>
+          <div id="pipeline-timer" class="text-xs font-mono text-slate-400 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
+            0.0 ms
+          </div>
+        </div>
+
+        <!-- Stages Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3" id="stages-container">
+          <!-- 6 Stages cards rendered here -->
+        </div>
+      </div>
+
+      <!-- Results & Inspection Dual Panel -->
+      <div id="results-panel" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: PDF & Extraction Viewer (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col h-[650px]">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div class="flex items-center gap-2">
+                <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
+                <h4 class="text-xs font-bold text-white uppercase tracking-wider">Invoice Document Source</h4>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="toggleDocView('pdf')" id="btn-view-pdf" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-indigo-600 text-white transition">PDF Preview</button>
+                <button onclick="toggleDocView('raw')" id="btn-view-raw" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition">Raw Stream</button>
+                <a id="btn-download-pdf" href="#" download class="text-[11px] p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Download original PDF">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                </a>
+              </div>
+            </div>
+
+            <!-- PDF Embed Area -->
+            <div id="doc-pdf-container" class="flex-1 mt-3 rounded-xl overflow-hidden border border-slate-800 bg-slate-900 flex items-center justify-center">
+              <object id="pdf-viewer-obj" data="" type="application/pdf" class="w-full h-full">
+                <div class="p-4 text-center text-xs text-slate-400">PDF preview not supported in this browser. Use download button.</div>
+              </object>
+            </div>
+
+            <!-- Raw Extracted Stream Text View -->
+            <div id="doc-raw-container" class="hidden flex-1 mt-3 rounded-xl overflow-auto border border-slate-800 bg-slate-900/90 p-4 text-xs font-mono text-slate-300 whitespace-pre-wrap"></div>
+          </div>
+        </div>
+
+        <!-- Right Column: Decision, Reasoning & Reconciliation (7 cols) -->
+        <div class="lg:col-span-7 space-y-4">
+
+          <!-- Decision Hero Card -->
+          <div id="decision-hero-card" class="rounded-2xl p-6 border shadow-xl transition-all">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+              <div>
+                <div class="flex items-center gap-2.5 mb-1.5">
+                  <span id="decision-status-pill" class="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full"></span>
+                  <span id="decision-risk-pill" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300"></span>
+                  <span class="text-xs font-mono text-slate-400 flex items-center gap-1">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i>
+                    <span id="decision-confidence-val">99% Confidence</span>
+                  </span>
+                </div>
+                <h3 id="decision-headline" class="text-lg font-extrabold text-white"></h3>
+              </div>
+
+              <!-- Quick Action / Override Button -->
+              <div id="decision-action-btn-box" class="flex items-center gap-2"></div>
+            </div>
+
+            <!-- Structured Non-Technical Explanation / Audit Points -->
+            <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-4 mt-3">
+              <h5 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+                Operational Reasoning & Audit Decision Log
+              </h5>
+              <ul id="decision-reasoning-list" class="space-y-1.5 text-xs text-slate-300">
+                <!-- Reasoning bullets inserted here -->
+              </ul>
+            </div>
+
+            <!-- Suggested Action Banner -->
+            <div class="mt-3 flex items-center gap-3 p-3 rounded-xl bg-indigo-950/40 border border-indigo-900/50 text-xs text-indigo-200">
+              <i data-lucide="arrow-right-circle" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+              <div>
+                <span class="font-bold">Next Automated Action:</span>
+                <span id="decision-suggested-action" class="ml-1 text-slate-300"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Line-by-Line PO Reconciliation Table -->
+          <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="scale" class="w-4 h-4 text-indigo-400"></i>
+                <h4 class="text-xs font-bold text-white uppercase tracking-wider">2-Way Line Item Reconciliation</h4>
+              </div>
+              <div id="po-balance-badge" class="text-xs font-mono px-2.5 py-0.5 rounded-full bg-slate-900 text-slate-400 border border-slate-800">
+                PO: N/A
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="text-slate-400 border-b border-slate-800/80">
+                    <th class="pb-2 font-semibold">SKU / Item Description</th>
+                    <th class="pb-2 font-semibold text-center">Inv Qty</th>
+                    <th class="pb-2 font-semibold text-right">Inv Unit Price</th>
+                    <th class="pb-2 font-semibold text-right">PO Contract Price</th>
+                    <th class="pb-2 font-semibold text-center">Variance</th>
+                    <th class="pb-2 font-semibold text-right">Line Total</th>
+                    <th class="pb-2 font-semibold text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="line-items-tbody" class="divide-y divide-slate-800/50 text-slate-300">
+                  <!-- Reconciled lines inserted here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ERP API Payload Details -->
+          <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
+            <details class="cursor-pointer group">
+              <summary class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-white">
+                <span class="flex items-center gap-2">
+                  <i data-lucide="code" class="w-3.5 h-3.5 text-indigo-400"></i>
+                  View ERP Integration Payload (NetSuite / SAP Ready)
+                </span>
+                <span class="text-indigo-400 group-open:rotate-180 transition">▼</span>
+              </summary>
+              <pre id="erp-payload-json" class="mt-3 p-3 bg-slate-900 rounded-xl text-[11px] text-emerald-400 border border-slate-800 overflow-x-auto"></pre>
+            </details>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: AUDIT HISTORY & ANALYTICS DASHBOARD -->
+    <!-- ========================================== -->
+    <section id="view-dashboard" class="hidden space-y-6">
+
+      <!-- Metrics KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+            <span>Total Invoices Run</span>
+            <i data-lucide="layers" class="w-4 h-4 text-blue-400"></i>
+          </div>
+          <div class="text-3xl font-extrabold text-white" id="metric-total-runs">0</div>
+          <p class="text-[11px] text-slate-400 mt-1">Processed through pipeline</p>
+        </div>
+
+        <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+            <span>Auto-Approval Rate</span>
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="text-3xl font-extrabold text-emerald-400" id="metric-approval-rate">0%</div>
+          <p class="text-[11px] text-slate-400 mt-1">Straight-through touchless</p>
+        </div>
+
+        <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+            <span>Exceptions & Fraud Blocked</span>
+            <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>
+          </div>
+          <div class="text-3xl font-extrabold text-amber-400" id="metric-exceptions">0</div>
+          <p class="text-[11px] text-slate-400 mt-1">Safeguarded company funds</p>
+        </div>
+
+        <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+            <span>AP Time Saved</span>
+            <i data-lucide="clock" class="w-4 h-4 text-indigo-400"></i>
+          </div>
+          <div class="text-3xl font-extrabold text-indigo-400" id="metric-time-saved">0 hrs</div>
+          <p class="text-[11px] text-slate-400 mt-1">Vs 15 min manual AP review</p>
+        </div>
+      </div>
+
+      <!-- Past Runs History Table -->
+      <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i>
+              Audit Trail & Execution History
+            </h3>
+            <p class="text-xs text-slate-400">Every run is cryptographically fingerprinted and stored with full stage-by-stage logs.</p>
+          </div>
+          <button onclick="loadDashboardData()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh Log
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="text-slate-400 border-b border-slate-800">
+                <th class="pb-3 font-semibold">Run ID / Timestamp</th>
+                <th class="pb-3 font-semibold">Vendor Name</th>
+                <th class="pb-3 font-semibold">Invoice #</th>
+                <th class="pb-3 font-semibold">PO #</th>
+                <th class="pb-3 font-semibold text-right">Invoiced Amount</th>
+                <th class="pb-3 font-semibold text-center">Decision</th>
+                <th class="pb-3 font-semibold text-center">Risk Level</th>
+                <th class="pb-3 font-semibold text-right">Latency</th>
+                <th class="pb-3 font-semibold text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody" class="divide-y divide-slate-800 text-slate-300">
+              <!-- Past runs dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: ERP & PURCHASE ORDER REGISTRY -->
+    <!-- ========================================== -->
+    <section id="view-erp" class="hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Active Purchase Orders Card -->
+        <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4 text-indigo-400"></i>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider">Procurement Master: Purchase Orders</h3>
+            </div>
+            <span class="text-xs text-slate-400">Live Balances</span>
+          </div>
+
+          <div class="space-y-4" id="erp-pos-list">
+            <!-- Dynamically populated POs -->
+          </div>
+        </div>
+
+        <!-- Approved Vendor Master Card -->
+        <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="building-2" class="w-4 h-4 text-emerald-400"></i>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider">Approved Vendor Master (W-9 / ACH File)</h3>
+            </div>
+            <span class="text-xs text-slate-400">Compliance Verified</span>
+          </div>
+
+          <div class="space-y-4" id="erp-vendors-list">
+            <!-- Dynamically populated Vendors -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Human Override Modal -->
+  <div id="override-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i data-lucide="user-check" class="w-4 h-4 text-amber-400"></i>
+          Human-in-the-Loop Override
+        </h3>
+        <button onclick="closeOverrideModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <p class="text-xs text-slate-400">Provide an operational justification to override the automated exception.</p>
+      
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Override Action</label>
+        <select id="modal-override-action" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+          <option value="OVERRIDE_APPROVE">Approve & Release Payment (Manager Waiver)</option>
+          <option value="CONFIRM_REJECT">Confirm Rejection & Send Dispute to Vendor</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Reason / Audit Justification Note</label>
+        <textarea id="modal-override-notes" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white" placeholder="e.g. Surcharge approved by VP of Ops via email on Nov 10..."></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button onclick="closeOverrideModal()" class="text-xs font-semibold px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white">Cancel</button>
+        <button onclick="submitOverride()" class="text-xs font-semibold px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white">Submit Decision</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side Logic -->
+  <script>
+    let currentRunData = null;
+    let scenariosList = [];
+
+    // Tab switcher
+    function switchTab(tabId) {
+      document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('text-slate-400');
+      });
+
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-indigo-600', 'text-white');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      if (tabId === 'dashboard') loadDashboardData();
+      if (tabId === 'erp') loadERPData();
+      lucide.createIcons();
+    }
+
+    // Load initial data
+    async function init() {
+      await loadScenarios();
+      await loadERPData();
+      lucide.createIcons();
+    }
+
+    // Load scenarios
+    async function loadScenarios() {
+      try {
+        const res = await fetch('/api/scenarios');
+        scenariosList = await res.json();
+        const grid = document.getElementById('scenarios-grid');
+        grid.innerHTML = '';
+
+        scenariosList.forEach(s => {
+          const card = document.createElement('div');
+          card.className = "cursor-pointer bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-3.5 transition flex flex-col justify-between group";
+          card.onclick = () => runScenario(s.id);
+
+          const badgeClasses = {
+            emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+            amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+            blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+            red: 'bg-red-500/10 text-red-400 border-red-500/20',
+            purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+          }[s.badge_color] || 'bg-slate-800 text-slate-300 border-slate-700';
+
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${badgeClasses}">
+                  ${s.badge}
+                </span>
+                <span class="text-[11px] font-mono font-bold text-slate-300">$${s.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+              </div>
+              <h4 class="text-xs font-bold text-white group-hover:text-indigo-300 transition line-clamp-1">${s.vendor}</h4>
+              <p class="text-[10px] text-slate-400 line-clamp-2 mt-1">${s.description}</p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+              <span>${s.po_no}</span>
+              <span class="text-indigo-400 font-sans font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition">
+                Run <i data-lucide="chevron-right" class="w-3 h-3"></i>
+              </span>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+        lucide.createIcons();
+      } catch (e) {
+        console.error("Failed loading scenarios:", e);
+      }
+    }
+
+    // Execute scenario with animated stages
+    async function runScenario(scenarioId) {
+      const scenario = scenariosList.find(s => s.id === scenarioId);
+      setupStepperForRun(scenario ? scenario.name : scenarioId);
+
+      const formData = new FormData();
+      formData.append('scenario_id', scenarioId);
+
+      try {
+        const startClient = performance.now();
+        const res = await fetch('/api/process', {
+          method: 'POST',
+          body: formData
+        });
+        const runRecord = await res.json();
+        const endClient = performance.now();
+        
+        // Animate stages step-by-step
+        await animateStages(runRecord.stages);
+        
+        displayRunResults(runRecord, Math.round(endClient - startClient));
+      } catch (err) {
+        console.error("Run error:", err);
+        alert("Error executing pipeline: " + err.message);
+      }
+    }
+
+    // Handle custom PDF upload
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      setupStepperForRun(`Uploaded File: ${file.name}`);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const startClient = performance.now();
+        const res = await fetch('/api/process', {
+          method: 'POST',
+          body: formData
+        });
+        const runRecord = await res.json();
+        const endClient = performance.now();
+
+        await animateStages(runRecord.stages);
+        displayRunResults(runRecord, Math.round(endClient - startClient));
+      } catch (err) {
+        console.error("Upload error:", err);
+        alert("Error processing uploaded PDF: " + err.message);
+      }
+    }
+
+    // Prepare stepper
+    function setupStepperForRun(label) {
+      document.getElementById('results-panel').classList.add('hidden');
+      const badge = document.getElementById('pipeline-scenario-badge');
+      badge.textContent = label;
+      badge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
+      badge.classList.remove('hidden');
+
+      document.getElementById('pipeline-status-indicator').className = "w-3 h-3 rounded-full bg-indigo-500 animate-ping";
+      document.getElementById('pipeline-status-text').textContent = "Executing automated stages in real time...";
+
+      const container = document.getElementById('stages-container');
+      container.innerHTML = '';
+      
+      const stageNames = [
+        "1. Doc Parse & OCR",
+        "2. Entity Extraction",
+        "3. Vendor Master Check",
+        "4. 2-Way PO Match",
+        "5. Policy & Fraud Rules",
+        "6. Final Decision Engine"
+      ];
+
+      stageNames.forEach((name, idx) => {
+        const card = document.createElement('div');
+        card.id = `stage-card-${idx+1}`;
+        card.className = "bg-slate-900 border border-slate-800 rounded-xl p-3 text-center transition flex flex-col justify-between opacity-50";
+        card.innerHTML = `
+          <div class="text-[10px] font-bold text-slate-400 mb-1">${name}</div>
+          <div id="stage-icon-${idx+1}" class="my-2 flex justify-center text-slate-600">
+            <i data-lucide="circle-dot" class="w-5 h-5"></i>
+          </div>
+          <div id="stage-meta-${idx+1}" class="text-[9px] font-mono text-slate-500">Waiting...</div>
+        `;
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    // Step animation helper
+    async function animateStages(stages) {
+      for (let i = 0; i < stages.length; i++) {
+        const s = stages[i];
+        const card = document.getElementById(`stage-card-${s.stage_id}`);
+        const icon = document.getElementById(`stage-icon-${s.stage_id}`);
+        const meta = document.getElementById(`stage-meta-${s.stage_id}`);
+
+        if (card) {
+          card.classList.remove('opacity-50');
+          card.classList.add('border-indigo-500/40', 'bg-slate-900/90');
+        }
+        if (icon) {
+          icon.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 text-indigo-400 animate-spin"></i>`;
+          lucide.createIcons();
+        }
+
+        await new Promise(r => setTimeout(r, 120)); // Brief visual pacing
+
+        if (icon && meta && card) {
+          if (s.status === 'SUCCESS') {
+            icon.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>`;
+            card.classList.add('border-emerald-500/40');
+            meta.textContent = `${s.duration_ms} ms · Passed`;
+            meta.className = "text-[9px] font-mono text-emerald-400";
+          } else if (s.status === 'WARNING') {
+            icon.innerHTML = `<i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400"></i>`;
+            card.classList.add('border-amber-500/40');
+            meta.textContent = `${s.duration_ms} ms · Warning`;
+            meta.className = "text-[9px] font-mono text-amber-400";
+          } else {
+            icon.innerHTML = `<i data-lucide="x-circle" class="w-5 h-5 text-rose-400"></i>`;
+            card.classList.add('border-rose-500/40');
+            meta.textContent = `${s.duration_ms} ms · Blocked`;
+            meta.className = "text-[9px] font-mono text-rose-400";
+          }
+          lucide.createIcons();
+        }
+      }
+    }
+
+    // Render detailed decision and inspection panel
+    function displayRunResults(record, totalClientMs) {
+      currentRunData = record;
+      document.getElementById('pipeline-status-indicator').className = "w-3 h-3 rounded-full bg-emerald-400";
+      document.getElementById('pipeline-status-text').textContent = `Pipeline complete. Decision rendered in ${record.processing_time_ms} ms.`;
+      document.getElementById('pipeline-timer').textContent = `${record.processing_time_ms} ms`;
+
+      // Set Document Preview
+      const obj = document.getElementById('pdf-viewer-obj');
+      if (record.scenario_id) {
+        obj.data = `/api/download-sample/${record.scenario_id}`;
+        document.getElementById('btn-download-pdf').href = `/api/download-sample/${record.scenario_id}`;
+      } else {
+        obj.data = "";
+        document.getElementById('btn-download-pdf').href = "#";
+      }
+
+      document.getElementById('doc-raw-container').textContent = record.extracted_invoice.raw_text || "No raw text stream captured.";
+
+      // Hero Card styling
+      const hero = document.getElementById('decision-hero-card');
+      const statusPill = document.getElementById('decision-status-pill');
+      const riskPill = document.getElementById('decision-risk-pill');
+      const confVal = document.getElementById('decision-confidence-val');
+      const headline = document.getElementById('decision-headline');
+      const actionBox = document.getElementById('decision-action-btn-box');
+
+      statusPill.textContent = record.decision.replace(/_/g, ' ');
+      riskPill.textContent = `${record.risk_level} RISK`;
+      confVal.textContent = `${Math.round(record.confidence_score * 100)}% Confidence`;
+      headline.textContent = record.summary_headline;
+
+      if (record.decision.startsWith('APPROVED')) {
+        hero.className = "rounded-2xl p-6 border shadow-xl transition-all bg-emerald-950/20 border-emerald-900/50";
+        statusPill.className = "text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        riskPill.className = "text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800";
+        actionBox.innerHTML = `
+          <span class="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-800/60">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i> Posted to ERP
+          </span>
+        `;
+      } else if (record.decision === 'FLAGGED_EXCEPTION') {
+        hero.className = "rounded-2xl p-6 border shadow-xl transition-all bg-amber-950/20 border-amber-900/50";
+        statusPill.className = "text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30";
+        riskPill.className = "text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800";
+        actionBox.innerHTML = `
+          <button onclick="openOverrideModal()" class="text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-lg shadow-amber-600/20">
+            <i data-lucide="user-cog" class="w-4 h-4"></i> Human Override
+          </button>
+        `;
+      } else {
+        hero.className = "rounded-2xl p-6 border shadow-xl transition-all bg-rose-950/20 border-rose-900/50";
+        statusPill.className = "text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30";
+        riskPill.className = "text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-800";
+        actionBox.innerHTML = `
+          <button onclick="openOverrideModal()" class="text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 border border-slate-700">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i> Review Fraud
+          </button>
+        `;
+      }
+
+      // Reasoning list
+      const reasonList = document.getElementById('decision-reasoning-list');
+      reasonList.innerHTML = '';
+      record.reasoning_points.forEach(pt => {
+        const li = document.createElement('li');
+        li.className = "flex items-start gap-2";
+        li.innerHTML = `<span class="text-indigo-400 font-bold">•</span> <span>${pt}</span>`;
+        reasonList.appendChild(li);
+      });
+
+      // Suggested action
+      document.getElementById('decision-suggested-action').textContent = 
+        record.stages[5]?.details?.suggested_action || "Auto-routed to ERP General Ledger queue.";
+
+      // PO Balance & Reconciled Line Items
+      const s4 = record.stages[3]?.details;
+      if (s4 && s4.po_found) {
+        document.getElementById('po-balance-badge').textContent = 
+          `PO #${s4.po_number} · Available Bal: $${s4.po_remaining_balance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      } else {
+        document.getElementById('po-balance-badge').textContent = "PO: Not Found / Unmatched";
+      }
+
+      const tbody = document.getElementById('line-items-tbody');
+      tbody.innerHTML = '';
+      
+      const reconciledLines = s4?.reconciled_lines || [];
+      if (reconciledLines.length > 0) {
+        reconciledLines.forEach(item => {
+          const tr = document.createElement('tr');
+          const isVar = item.status === 'PRICE_VARIANCE';
+          tr.className = isVar ? "bg-amber-500/5" : "";
+
+          const varBadge = isVar 
+            ? `<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400 font-bold font-mono text-[10px]">${item.variance_pct > 0 ? '+' : ''}${item.variance_pct}%</span>`
+            : `<span class="text-slate-500 font-mono text-[10px]">0.0%</span>`;
+
+          const statusBadge = isVar
+            ? `<span class="text-[10px] font-bold text-amber-400 uppercase">Variance</span>`
+            : `<span class="text-[10px] font-bold text-emerald-400 uppercase">Match</span>`;
+
+          tr.innerHTML = `
+            <td class="py-2.5">
+              <div class="font-semibold text-white">${item.sku || 'N/A'}</div>
+              <div class="text-[10px] text-slate-400">${item.description}</div>
+            </td>
+            <td class="py-2.5 text-center font-mono">${item.inv_qty}</td>
+            <td class="py-2.5 text-right font-mono">$${item.inv_price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="py-2.5 text-right font-mono text-slate-400">$${item.po_price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="py-2.5 text-center">${varBadge}</td>
+            <td class="py-2.5 text-right font-mono font-bold text-white">$${(item.inv_qty * item.inv_price).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="py-2.5 text-center">${statusBadge}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        // Fallback for extracted items without direct PO match
+        record.extracted_invoice.line_items.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="py-2.5">
+              <div class="font-semibold text-white">${item.sku || 'N/A'}</div>
+              <div class="text-[10px] text-slate-400">${item.description}</div>
+            </td>
+            <td class="py-2.5 text-center font-mono">${item.quantity}</td>
+            <td class="py-2.5 text-right font-mono">$${item.unit_price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="py-2.5 text-right font-mono text-slate-500">—</td>
+            <td class="py-2.5 text-center text-slate-500">—</td>
+            <td class="py-2.5 text-right font-mono font-bold text-white">$${item.total_price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="py-2.5 text-center"><span class="text-[10px] font-bold text-slate-400">UNMATCHED</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // ERP Payload display
+      const erpPayload = record.stages[5]?.details?.erp_action_payload || {
+        status: "HELD_IN_AUDIT_QUEUE",
+        decision: record.decision,
+        reason: record.summary_headline
+      };
+      document.getElementById('erp-payload-json').textContent = JSON.stringify(erpPayload, null, 2);
+
+      // Show results panel
+      document.getElementById('results-panel').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    // Toggle document view (PDF vs Raw stream)
+    function toggleDocView(mode) {
+      if (mode === 'pdf') {
+        document.getElementById('doc-pdf-container').classList.remove('hidden');
+        document.getElementById('doc-raw-container').classList.add('hidden');
+        document.getElementById('btn-view-pdf').className = "text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-indigo-600 text-white transition";
+        document.getElementById('btn-view-raw').className = "text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition";
+      } else {
+        document.getElementById('doc-pdf-container').classList.add('hidden');
+        document.getElementById('doc-raw-container').classList.remove('hidden');
+        document.getElementById('btn-view-raw').className = "text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-indigo-600 text-white transition";
+        document.getElementById('btn-view-pdf').className = "text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition";
+      }
+    }
+
+    // Dashboard data loader
+    async function loadDashboardData() {
+      try {
+        const res = await fetch('/api/runs');
+        const data = await res.json();
+        
+        document.getElementById('metric-total-runs').textContent = data.metrics.total_runs;
+        document.getElementById('metric-approval-rate').textContent = `${data.metrics.approval_rate_pct}%`;
+        document.getElementById('metric-exceptions').textContent = data.metrics.flagged + data.metrics.rejected;
+        document.getElementById('metric-time-saved').textContent = `${data.metrics.time_saved_hours} hrs`;
+
+        const tbody = document.getElementById('history-tbody');
+        tbody.innerHTML = '';
+
+        if (data.runs.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-slate-500">No invoice runs recorded yet. Execute a scenario above!</td></tr>`;
+          return;
+        }
+
+        data.runs.forEach(r => {
+          const tr = document.createElement('tr');
+          const statusColors = {
+            'APPROVED': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+            'APPROVED_WITH_OVERRIDE': 'bg-teal-500/10 text-teal-300 border-teal-500/20',
+            'FLAGGED_EXCEPTION': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+            'REJECTED': 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+            'CONFIRMED_REJECTED': 'bg-rose-950 text-rose-300 border-rose-800'
+          }[r.decision] || 'bg-slate-800 text-slate-300 border-slate-700';
+
+          tr.innerHTML = `
+            <td class="py-3">
+              <div class="font-mono text-white font-semibold">${r.run_id}</div>
+              <div class="text-[10px] text-slate-400">${r.timestamp}</div>
+            </td>
+            <td class="py-3 font-semibold text-white">${r.vendor_name}</td>
+            <td class="py-3 font-mono text-slate-300">${r.invoice_number}</td>
+            <td class="py-3 font-mono text-slate-400">${r.po_number || 'N/A'}</td>
+            <td class="py-3 text-right font-mono font-bold text-white">$${r.total_amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="py-3 text-center">
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border ${statusColors}">
+                ${r.decision.replace(/_/g, ' ')}
+              </span>
+            </td>
+            <td class="py-3 text-center">
+              <span class="text-[10px] font-mono text-slate-300">${r.risk_level}</span>
+            </td>
+            <td class="py-3 text-right font-mono text-slate-400">${r.processing_time_ms} ms</td>
+            <td class="py-3 text-center">
+              <button onclick="inspectPastRun('${r.run_id}')" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition">
+                Inspect
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+        lucide.createIcons();
+      } catch (e) {
+        console.error("Dashboard error:", e);
+      }
+    }
+
+    // Inspect a specific past run
+    async function inspectPastRun(runId) {
+      try {
+        const res = await fetch(`/api/runs/${runId}`);
+        const record = await res.json();
+        switchTab('pipeline');
+        setupStepperForRun(`Inspecting ${record.run_id}`);
+        await animateStages(record.stages);
+        displayRunResults(record, record.processing_time_ms);
+      } catch (e) {
+        alert("Could not load run: " + e.message);
+      }
+    }
+
+    // ERP Data loader
+    async function loadERPData() {
+      try {
+        const [posRes, vendorsRes] = await Promise.all([
+          fetch('/api/erp/pos'),
+          fetch('/api/erp/vendors')
+        ]);
+        const pos = await posRes.json();
+        const vendors = await vendorsRes.json();
+
+        // Render POs
+        const poList = document.getElementById('erp-pos-list');
+        poList.innerHTML = '';
+        pos.forEach(po => {
+          const div = document.createElement('div');
+          div.className = "p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2";
+          const pct = Math.round((po.already_invoiced / po.total_amount) * 100);
+
+          div.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="font-mono font-bold text-sm text-indigo-400">${po.po_number}</span>
+                <span class="text-xs text-slate-400 ml-2">(${po.vendor_name})</span>
+              </div>
+              <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${po.remaining_balance > 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400'}">
+                ${po.status.replace(/_/g, ' ')}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="text-slate-400">Total Budget: <b>$${po.total_amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</b></span>
+              <span class="text-slate-400">Invoiced: <b>$${po.already_invoiced.toLocaleString('en-US', {minimumFractionDigits: 2})}</b></span>
+              <span class="text-emerald-400">Remaining: <b>$${po.remaining_balance.toLocaleString('en-US', {minimumFractionDigits: 2})}</b></span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+              <div class="bg-indigo-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
+            </div>
+          `;
+          poList.appendChild(div);
+        });
+
+        // Render Vendors
+        const vList = document.getElementById('erp-vendors-list');
+        vList.innerHTML = '';
+        vendors.forEach(v => {
+          const div = document.createElement('div');
+          div.className = "p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1.5";
+          div.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">${v.name}</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                ${v.status}
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-400">
+              <div>Vendor ID: <span class="text-slate-300">${v.vendor_id}</span></div>
+              <div>Terms: <span class="text-slate-300">${v.payment_terms}</span></div>
+              <div>Tax ID: <span class="text-slate-300">${v.tax_id}</span></div>
+              <div>ACH Routing: <span class="text-slate-300">${v.approved_bank_routing}</span></div>
+            </div>
+          `;
+          vList.appendChild(div);
+        });
+        lucide.createIcons();
+      } catch (e) {
+        console.error("ERP load error:", e);
+      }
+    }
+
+    // Reset Demo State
+    async function resetERPState() {
+      if (!confirm("Reset ERP database, PO balances, and past runs back to initial state?")) return;
+      try {
+        await fetch('/api/reset-erp', { method: 'POST' });
+        await init();
+        alert("Demo environment reset successfully!");
+      } catch (e) {
+        alert("Reset failed: " + e.message);
+      }
+    }
+
+    // Human Override Modal Handlers
+    function openOverrideModal() {
+      if (!currentRunData) return;
+      document.getElementById('override-modal').classList.remove('hidden');
+      document.getElementById('modal-override-notes').value = '';
+      lucide.createIcons();
+    }
+
+    function closeOverrideModal() {
+      document.getElementById('override-modal').classList.add('hidden');
+    }
+
+    async function submitOverride() {
+      if (!currentRunData) return;
+      const action = document.getElementById('modal-override-action').value;
+      const notes = document.getElementById('modal-override-notes').value.trim();
+
+      if (!notes) {
+        alert("Please enter an operational justification note for the audit log.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/runs/${currentRunData.run_id}/override`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: action,
+            notes: notes,
+            reviewer: "AP Lead / Solutions Analyst"
+          })
+        });
+        const updated = await res.json();
+        closeOverrideModal();
+        displayRunResults(updated, updated.processing_time_ms);
+        alert("Override recorded and audit log updated!");
+      } catch (e) {
+        alert("Error saving override: " + e.message);
+      }
+    }
+
+    // Startup
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
