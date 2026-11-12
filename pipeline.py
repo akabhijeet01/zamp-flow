@@ -280,7 +280,7 @@ class InvoicePipeline:
         exceeds_tolerance = False
         exceeds_budget = False
         
-        # In demo rehearsal, allow Happy Path to re-run smoothly without self-lockout
+        # Ensure pre-configured scenario cards always execute deterministically during demonstrations
         clean_inv_no = extracted.invoice_number.upper().strip()
         if scenario_id == "happy_path":
             if clean_inv_no in db.processed_invoices_registry:
@@ -289,6 +289,30 @@ class InvoicePipeline:
                 po_record["remaining_balance"] = po_record["total_amount"]
                 po_record["already_invoiced"] = 0.0
                 po_record["status"] = "OPEN"
+        elif scenario_id == "edge_split_billing":
+            if clean_inv_no in db.processed_invoices_registry:
+                del db.processed_invoices_registry[clean_inv_no]
+            if po_record:
+                po_record["total_amount"] = 25000.00
+                po_record["already_invoiced"] = 15000.00
+                po_record["remaining_balance"] = 10000.00
+                po_record["status"] = "OPEN_PARTIALLY_INVOICED"
+        elif scenario_id == "edge_price_variance":
+            if clean_inv_no in db.processed_invoices_registry:
+                del db.processed_invoices_registry[clean_inv_no]
+            if po_record:
+                po_record["remaining_balance"] = po_record["total_amount"]
+                po_record["already_invoiced"] = 0.0
+                po_record["status"] = "OPEN"
+        elif scenario_id == "edge_duplicate_fraud":
+            db.processed_invoices_registry["INV-CS-9941"] = {
+                "vendor_name": "CyberShield Security Corp",
+                "invoice_number": "INV-CS-9941",
+                "po_number": "PO-6640",
+                "total_amount": 8800.00,
+                "processed_date": "2026-11-04",
+                "status": "PAID"
+            }
 
         # 1. Duplicate Invoice Check
         if clean_inv_no in db.processed_invoices_registry:
