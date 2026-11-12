@@ -643,6 +643,8 @@ class InvoicePipeline:
 
     def _get_headline(self, decision: str, inv: ExtractedInvoice) -> str:
         if decision == "APPROVED":
+            if any("milestone" in item.description.lower() for item in inv.line_items) or "milestone" in inv.raw_text.lower():
+                return f"Auto-Approved: Valid Milestone Drawdown for ${inv.total_amount:,.2f}"
             return f"Auto-Approved: Clean 2-Way Match for ${inv.total_amount:,.2f}"
         elif decision == "FLAGGED_EXCEPTION":
             return f"Action Required: Discrepancy Exceeds Tolerance (${inv.total_amount:,.2f})"
